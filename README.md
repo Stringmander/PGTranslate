@@ -1,10 +1,10 @@
 # VGTranslate3
 
-Lightweight server for doing OCR and machine translation on game screen captures. Suitable as an endpoint for real time usage, and can act as an open-source alternative to the ztranslate client. Based on the original VGTranslate. Uses python 3.9. Licensed under GNU GPLv3.
+Lightweight server for doing OCR and machine translation on game screen captures. Suitable as an endpoint for real time usage, and can act as an open-source alternative to the ztranslate client. Based on the original VGTranslate. Uses Python 3.14+. Licensed under GNU GPLv3.
 
 ---
 
-Легковесный сервер для оптического распознавания текста (OCR) и машинного перевода скриншотов из игр. Подходит для использования в реальном времени и может выступать как открытая альтернатива клиенту ztranslate. Основан на оригинальном VGTranslate. Использует Python 3.9. Лицензия: GNU GPLv3.
+Легковесный сервер для оптического распознавания текста (OCR) и машинного перевода скриншотов из игр. Подходит для использования в реальном времени и может выступать как открытая альтернатива клиенту ztranslate. Основан на оригинальном VGTranslate. Использует Python 3.14+. Лицензия: GNU GPLv3.
 
 ---
 
