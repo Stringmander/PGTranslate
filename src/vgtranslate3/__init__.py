@@ -2,13 +2,11 @@
 vgtranslate3 – OCR game translator.
 """
 
-from __future__ import annotations
-
 import json
 import os
-from importlib.metadata import version as _pkg_version 
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # ------------------------------------------------------------------------
 # Version
@@ -29,7 +27,7 @@ _CFG_PATH = Path(
 )
 
 
-def load_default_config() -> Dict[str, Any]:
+def load_default_config() -> dict[str, Any]:
     """Вернуть словарь с настройками из файла конфигурации."""
     return json.loads(_CFG_PATH.read_text(encoding="utf-8"))
 

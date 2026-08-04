@@ -1,28 +1,34 @@
-from typing import Union, Optional
+import base64
+import hashlib
 import http.client
-import base64, hashlib, json, http.client
-from typing import Tuple, Dict, Any, Optional
+import json
+from typing import Any
+
 from . import config
 
 # ────────────────────────────────────────────────────────────────────────
 #  Блок констант – можно вынести в config.py
 # ────────────────────────────────────────────────────────────────────────
-_YANDEX_ENDPOINT   = "/tts/v3/utteranceSynthesis"
-_YANDEX_HOST       = "tts.api.cloud.yandex.net"
-_TTS_MODEL         = ""          # Nothing
-_TTS_SAMPLE_RATE   = 48000              # Гц
-_TTS_CONTAINER     = "WAV"              # просим сразу WAV
+_YANDEX_ENDPOINT = "/tts/v3/utteranceSynthesis"
+_YANDEX_HOST = "tts.api.cloud.yandex.net"
+_TTS_MODEL = ""  # Nothing
+_TTS_SAMPLE_RATE = 48000  # Гц
+_TTS_CONTAINER = "WAV"  # просим сразу WAV
 
-class TextToSpeech(object):
+
+class TextToSpeech:
     # ----------------------------------------------------------
     # ПУБЛИЧНЫЙ API (осталось имя как раньше)
     # ----------------------------------------------------------
     @classmethod
-    def text_to_speech_api(cls, text: str,
-                           name: str = "",
-                           source_lang: Optional[str] = None,
-                           provider: Optional[str] = "google",
-                           **auth) -> bytes:
+    def text_to_speech_api(
+        cls,
+        text: str,
+        name: str = "",
+        source_lang: str | None = None,
+        provider: str | None = "google",
+        **auth,
+    ) -> bytes:
         """
         :param provider: "google" (default) | "yandex"
         :param auth:     ключи для конкретного провайдера –
@@ -40,29 +46,36 @@ class TextToSpeech(object):
 
         # ---------- 2. Google vs Yandex vs OpenAI ------------------------ #
         if provider == "google":
-            audio = cls._google_tts(text, source_lang or "en-US",
-                                    voice, pitch, speed,
-                                    api_key=auth.get("google_api_key")
-                                            or config.local_server_translation_key)
+            audio = cls._google_tts(
+                text,
+                source_lang or "en-US",
+                voice,
+                pitch,
+                speed,
+                api_key=auth.get("google_api_key")
+                or config.local_server_translation_key,
+            )
 
         elif provider == "yandex":
-            audio = cls._yandex_tts(text, source_lang or "en-US",
-                                    voice, speed,
-                                    folder_id = auth.get("folder_id")
-                                                or config.yandex_folder_id,
-                                    iam_token = auth.get("iam_token")
-                                                or config.yandex_iam_token,
-                                    api_key   = auth.get("api_key")
-                                                or config.yandex_translation_key)
-        
+            audio = cls._yandex_tts(
+                text,
+                source_lang or "en-US",
+                voice,
+                speed,
+                folder_id=auth.get("folder_id") or config.yandex_folder_id,
+                iam_token=auth.get("iam_token") or config.yandex_iam_token,
+                api_key=auth.get("api_key") or config.yandex_translation_key,
+            )
+
         elif provider == "openai":
-            audio = cls._openai_tts(text, 
-                                    voice=config.openai_tts_voice,
-                                    model=config.openai_tts_model,
-                                    api_key=auth.get("openai_api_key")
-                                            or config.openai_api_key,
-                                    base_url=config.openai_base_url)
-        
+            audio = cls._openai_tts(
+                text,
+                voice=config.openai_tts_voice,
+                model=config.openai_tts_model,
+                api_key=auth.get("openai_api_key") or config.openai_api_key,
+                base_url=config.openai_base_url,
+            )
+
         else:
             raise ValueError(f"Unknown TTS provider: {provider}")
 
@@ -72,9 +85,16 @@ class TextToSpeech(object):
     #  GOOGLE Cloud Text-to-Speech (как раньше, только вынесено)
     # ----------------------------------------------------------
     @classmethod
-    def _google_tts(cls, text: str, lang: str,
-                    voice: str, pitch: float, speed: float,
-                    *, api_key: str) -> bytes:
+    def _google_tts(
+        cls,
+        text: str,
+        lang: str,
+        voice: str,
+        pitch: float,
+        speed: float,
+        *,
+        api_key: str,
+    ) -> bytes:
 
         uri = f"/v1/text:synthesize?key={api_key}"
 
@@ -82,10 +102,10 @@ class TextToSpeech(object):
             "audioConfig": {
                 "audioEncoding": "LINEAR16",
                 "pitch": pitch,
-                "speakingRate": speed
+                "speakingRate": speed,
             },
             "input": {"text": text},
-            "voice": {"languageCode": lang}
+            "voice": {"languageCode": lang},
         }
         if lang == "en-US":
             doc["voice"]["name"] = voice
@@ -96,7 +116,7 @@ class TextToSpeech(object):
         conn = http.client.HTTPSConnection("texttospeech.googleapis.com", 443)
         conn.request("POST", uri, body, headers)
         rep = conn.getresponse()
-        data: Dict[str, Any] = json.loads(rep.read())
+        data: dict[str, Any] = json.loads(rep.read())
 
         if "error" in data:
             raise RuntimeError(f"Google TTS error: {data['error']}")
@@ -107,11 +127,16 @@ class TextToSpeech(object):
     #  YANDEX SpeechKit v3 (REST, /speech/v1/tts:synthesize)
     # ----------------------------------------------------------
     @classmethod
-    def _yandex_tts(cls, text: str, lang: str,
-                    voice_hint: str, speed: float,
-                    folder_id: str,
-                    iam_token: Optional[str],
-                    api_key:  Optional[str]) -> bytes:
+    def _yandex_tts(
+        cls,
+        text: str,
+        lang: str,
+        voice_hint: str,
+        speed: float,
+        folder_id: str,
+        iam_token: str | None,
+        api_key: str | None,
+    ) -> bytes:
         """
         Синтез речи через Yandex SpeechKit v3 (JSON-stream).
         Возвращает уже готовый WAV-файл (bytes).
@@ -123,18 +148,12 @@ class TextToSpeech(object):
         # 2. собираем JSON-тело запроса ────────────────────────────────
         req_body = {
             "model": _TTS_MODEL,
-            "text":  text,
-            "hints": [{
-                "voice": voice,
-                "speed": f"{speed:.2f}",
-                "volume": "1.0"
-            }],
+            "text": text,
+            "hints": [{"voice": voice, "speed": f"{speed:.2f}", "volume": "1.0"}],
             "outputAudioSpec": {
-                "containerAudio": {
-                    "containerAudioType": _TTS_CONTAINER
-                }
+                "containerAudio": {"containerAudioType": _TTS_CONTAINER}
             },
-            "loudnessNormalizationType" : "MAX_PEAK"
+            "loudnessNormalizationType": "MAX_PEAK",
         }
 
         body = json.dumps(req_body).encode("utf-8")
@@ -142,7 +161,7 @@ class TextToSpeech(object):
         # 3. заголовки (auth + folder) ─────────────────────────────────
         headers = {
             "Content-Type": "application/json",
-            "X-Folder-Id":  folder_id,          # v3 принято передавать именно так
+            "X-Folder-Id": folder_id,  # v3 принято передавать именно так
         }
         if iam_token:
             headers["Authorization"] = f"Bearer {iam_token}"
@@ -168,10 +187,12 @@ class TextToSpeech(object):
             try:
                 obj = json.loads(line)
             except json.JSONDecodeError:
-                continue                     # пропускаем пустые keep-alive
-            if "result" in obj:              # это чанк звука
+                continue  # пропускаем пустые keep-alive
+            if "result" in obj:  # это чанк звука
                 if "audioChunk" in obj["result"]:
-                    audio_data.extend(base64.b64decode(obj["result"]["audioChunk"]["data"]))
+                    audio_data.extend(
+                        base64.b64decode(obj["result"]["audioChunk"]["data"])
+                    )
             # опционально: можно обработать textChunk / timestamps и т.п.
 
         print(f"TTS: {len(audio_data)} bytes")
@@ -182,49 +203,42 @@ class TextToSpeech(object):
     #  OpenAI Text-to-Speech
     # ----------------------------------------------------------
     @classmethod
-    def _openai_tts(cls, text: str,
-                    voice: str,
-                    model: str,
-                    api_key: str,
-                    base_url: str) -> bytes:
+    def _openai_tts(
+        cls, text: str, voice: str, model: str, api_key: str, base_url: str
+    ) -> bytes:
         """
         TTS через OpenAI-совместимый API.
-        
+
         POST {base_url}/audio/speech
         Body: {model, input, voice, response_format: "wav"}
-        
+
         Returns: WAV bytes
         """
         import urllib.parse
-        
+
         parsed_url = urllib.parse.urlparse(base_url)
         host = parsed_url.netloc
         base_path = parsed_url.path.rstrip("/")
         uri = f"{base_path}/audio/speech"
-        
-        req = {
-            "model": model,
-            "input": text,
-            "voice": voice,
-            "response_format": "wav"
-        }
-        
+
+        req = {"model": model, "input": text, "voice": voice, "response_format": "wav"}
+
         body = json.dumps(req, ensure_ascii=False).encode("utf-8")
         headers = {
             "Content-Type": "application/json; charset=utf-8",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
         }
-        
+
         conn = http.client.HTTPSConnection(host, 443, timeout=config.openai_timeout)
         conn.request("POST", uri, body, headers)
         response = conn.getresponse()
-        
+
         if response.status != 200:
             raise RuntimeError(f"OpenAI TTS error: HTTP {response.status}")
-        
+
         audio_data = response.read()
         conn.close()
-        
+
         print(f"OpenAI TTS: {len(audio_data)} bytes")
         return audio_data
 
@@ -232,7 +246,7 @@ class TextToSpeech(object):
     #  выбор голоса (оставляем как было, но убираем old_div)
     # ----------------------------------------------------------
     @classmethod
-    def process_name_voice(cls, name: Union[str, bytes]) -> Tuple[str, float, float]:
+    def process_name_voice(cls, name: str | bytes) -> tuple[str, float, float]:
         voices = [
             "en-US-Wavenet-A",
             "en-US-Wavenet-B",
@@ -255,12 +269,11 @@ class TextToSpeech(object):
         return voice, pitch, speed
 
 
-
 def main():
     name = "Cloud"
     text = "I am a human being, no different from you."
     TextToSpeech.text_to_speech_api(text, name=name, source_lang=None)
 
-if __name__=="__main__":
-    main()
 
+if __name__ == "__main__":
+    main()
