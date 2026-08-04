@@ -44,7 +44,7 @@ See `TESSERACT_GUIDE.md` for details.
 
 ## System Requirements
 
-- **Python 3.9+**
+- **Python 3.14+**
 - **512MB RAM** (2GB+ for local OCR)
 - **Internet** (for cloud OCR/translation)
 

@@ -1,13 +1,15 @@
-from __future__ import print_function
-import http.client
-import json
 import base64
+import http.client
 import io
-from . import config
+import json
 import time
+
 from PIL import Image
 
-class ServerClient(object):
+from . import config
+
+
+class ServerClient:
     @classmethod
     def call_server(cls, image_object, source_lang, target_lang, fast, free):
         if fast:
@@ -18,14 +20,14 @@ class ServerClient(object):
             mode = "normal"
 
         if mode == "fast":
-            #speeds up upload by 4x, but inexact pixels
+            # speeds up upload by 4x, but inexact pixels
             image_object = image_object.convert("P", palette=Image.ADAPTIVE)
         else:
-            #speeds up upload by %33 by removing alpha.
+            # speeds up upload by %33 by removing alpha.
             image_object = image_object.convert("RGB")
-        
+
         image_byte_array = io.BytesIO()
-        image_object.save(image_byte_array, format='PNG')
+        image_object.save(image_byte_array, format="PNG")
         image_data = image_byte_array.getvalue()
 
         image_data = base64.b64encode(image_data)
@@ -35,7 +37,6 @@ class ServerClient(object):
             mode = "free"
         else:
             mode = "normal"
-         
 
         body = {
             "timestamp": "",
@@ -43,21 +44,22 @@ class ServerClient(object):
             "source_lang": source_lang,
             "target_lang": target_lang,
             "image": image_data,
-            "mode": mode
+            "mode": mode,
         }
         t_time = time.time()
-        
+
         try:
             conn = http.client.HTTPSConnection(config.server_host, config.server_port)
             conn.request("POST", "/ocr", json.dumps(body))
             rep = conn.getresponse()
             d = rep.read()
             output = json.loads(d)
-            print(['Took: ', time.time()-t_time])
+            print(["Took: ", time.time() - t_time])
 
             return output
         except:
             import traceback
+
             traceback.print_exc()
             print([body])
             print("===")
@@ -78,4 +80,3 @@ class ServerClient(object):
             return output
         except:
             return dict()
-        

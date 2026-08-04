@@ -1,6 +1,12 @@
 # Core dependencies (required)
-pillow>=10,<12
+# Requires Python >=3.14
+pillow>=12,<13
 requests>=2.32,<3.0
+
+# Local OCR (optional — install system tesseract separately)
 pytesseract>=0.3,<0.4
-opencv-python-headless>=4.10,<5
-numpy>=2.0,<3
+opencv-python-headless>=4.14,<6
+numpy>=2.4,<3
+
+# Web UI (optional)
+websockets>=15,<18

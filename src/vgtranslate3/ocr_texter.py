@@ -1,11 +1,6 @@
-from builtins import object
-import pytesseract
-from imaging import segfil
-
-class OCRTexter(object):
+class OCRTexter:
     @classmethod
     def ocr_text(cls, image, colors, segcolor, lang=None):
-        #-outline:
+        # -outline:
         # -reduce to multicolor
         pass
-        
