@@ -1,10 +1,10 @@
-# Foundation & Understanding (Weeks 1–2)
+# Phase 0: Foundation & Understanding (Weeks 1–2)
 
 ## Primary Goals
 
 1. **Internal mental model:** Be able to trace any request from receipt to response without looking up code.
 2. **Pain point inventory:** Document UX issues, architectural smells, and technical debt before refactoring.
-3. **Learning baseline:** Understand enough Python idioms here to recognize when something is "off."
+3. **Learning baseline:** Understand enough Python idioms to recognize when something is "off."
 
 ## Success Criteria
 
@@ -15,26 +15,56 @@ By the end of Phase 0, you should be able to:
 - Explain what each major file/module does in one sentence
 - Confidently predict where a bug would manifest given a symptom
 
+## Deliverables Directory Structure
+
+docs/
+├── roadmap/
+│   ├── ROADMAP.md                     # High-level project trajectory (all phases)
+│   └── phase_0.md                     # This document
+└── deliverables/
+    ├── PHASE0_NOTES.md                # First-pass readings, confusion points
+    ├── ARCHITECTURE_DRAFT.md          # Code modules, request lifecycle, data flow
+    ├── DOCUMENTATION_MAP.md           # Existing docs inventory + gaps
+    ├── CONFIG_SYSTEM_DRAFT.md         # Config provider mappings, validation gaps
+    ├── RETROARCH_INTEGRATION.md       # Protocol details, request/response schemas
+    └── PHASE0_SUMMARY.md              # Final synthesis + priority-ranked pain points
+
+### Naming Convention
+
+All `*_DRAFT.md` files are promoted to their final form (dropping the `_DRAFT` suffix) upon Phase 0 completion via `git mv`:
+
+`git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md git commit -m "docs: promote Phase 0 drafts to final form"`
+
+Files without `_DRAFT` (`PHASE0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_INTEGRATION.md`, `PHASE0_SUMMARY.md`) are created in their final name from the start.
+
 ---
 
 ## Week 1: Codebase Reconnaissance
 
 ### Day 1–2: First Pass Reading
 
-**Task:** Clone your fork and read files top-to-bottom in this order:
+**Task:** Read files top-to-bottom in this order:
 
 1. `README.md` — Get the high-level pitch
 2. `INSTALL.md` — Understand dependencies and setup
-3. `src/vgtranslate3/` directory — Read all `.py` files
-4. Any config examples (`config_*.json`)
-5. `tests/` — Skim what's tested vs. not tested
-6. `pyproject.toml` and `requirements.txt` — Dependencies
+3. `LOCAL_MODELS_GUIDE.md` and `TESSERACT_GUIDE.md` — Specialized setup docs
+4. `src/vgtranslate3/` directory — Read all `.py` files
+5. Any config examples (`config_*.json`)
+6. `tests/` — Skim what's tested vs. not tested
+7. `pyproject.toml` and `requirements.txt` — Dependencies
 
-**Deliverable:** A `PHASE0_NOTES.md` document with:
+**Deliverable:** Create `docs/deliverables/PHASE0_NOTES.md` with:
 
 - One sentence describing each file/module's purpose
 - A list of 5–10 terms/concepts you had to look up
 - Your initial gut feelings on what feels clean vs. messy
+- Red flags encountered (hardcoded paths, silent failures, monolithic functions, magic numbers, global state — see "Red Flags to Watch For" below)
+
+**Deliverable:** Create `docs/deliverables/DOCUMENTATION_MAP.md` with:
+
+- A table mapping each doc file to its purpose, target audience, and completeness assessment
+- Gaps in documentation (e.g., "no troubleshooting guide," "INSTALL.md assumes Linux only")
+- Docs that are stale, duplicated, or contradictory
 
 **Cursor usage tip:** For any function/file you don't understand, highlight the code and ask:
 
@@ -54,30 +84,39 @@ Start at the server entry point (likely a Flask/FastAPI route handler or equival
 - How are errors handled at each stage?
 - What gets returned to the client?
 
-**Deliverable:** An `ARCHITECTURE_DRAFT.md` with:
+**Deliverable:** Create `docs/deliverables/ARCHITECTURE_DRAFT.md` with the following structure (fill in as you discover answers — the template guides you toward what matters most):
 
-- A text-based diagram of the request flow
-- A table listing each major component, its responsibility, and dependencies
-- Notes on where data transforms (e.g., "image bytes → PIL Image → base64 → JSON blob")
-`
-**Example flow sketch:**
-```mermaid
-graph TD
+**One-Sentence Summary:** PGTranslate is a [one-sentence description of what the project does].
 
-A["Incoming HTTP Request <br> POST /translate (image data)"] -->
-B["Request Validation <br> (check headers, size, format)"] -->
-C["Routing <br> (select provider from config.json)"]
-C --> D["OCR Step <br> (Tesseract/Gemini)"]
-C --> E["Translation <br> (LLM/API call)"]
-F["Response <br> (JSON with translated text + metadata)"]
-D --> F
-E --> F
-```
+**Request Lifecycle Diagram:** A text-based diagram showing how a game screenshot flows from entry to translation output.
+
+**Module Breakdown** (focus: Python source files in `src/vgtranslate3/`):
+
+|File/Module|Responsibility|Dependencies|Notes|
+|---|---|---|---|
+|`__init__.py`|...|...|...|
+|`main.py`|...|...|...|
+|...|...|...|...|
+
+**Data Flow Transformation Points:**
+
+|Stage|Input Format|Output Format|Transform|
+|---|---|---|---|
+|HTTP Receipt|...|...|...|
+|Preprocessing|...|...|...|
+|OCR|...|...|...|
+|Translation|...|...|...|
+|Response|...|...|...|
+
+Include an "Unknowns & Questions" section with checkbox items, and a "Notes from Reading" section for observations as you read through each module.
+
+Mark the top of the file with:
+
+> Working document — Phase 0 WIP. Will be promoted to ARCHITECTURE.md upon phase completion.
+
 ### Day 5–7: Static Analysis
 
 **Task:** Run the existing tests and examine coverage.
-
-Even if you don't write new tests yet, run:
 
 `python -m pytest --cov=src/ --cov-report=html`
 
@@ -89,15 +128,15 @@ Or whatever test runner the project uses. Look at:
 
 Also check:
 
-- Static analysis warnings with `pylint` or `flake8`
+- Static analysis warnings with `ruff check src/ tests/`
 - Type hints: are they present, partial, or absent?
 - Import cycles or circular dependencies
 
-**Deliverable:** Add a section to `PHASE0_NOTES.md` covering:
+**Deliverable:** Append a "Static Analysis" section to `PHASE0_NOTES.md` covering:
 
 - Coverage % estimate by module
 - List of untested critical paths
-- Static analysis issues you noticed (even if not fixing yet)
+- Ruff issues noticed (even if not fixing yet)
 
 ---
 
@@ -114,27 +153,25 @@ Look at all `config_*.json` files and catalog:
 - How does the code pick which config to load?
 - What happens when a required field is missing?
 
-**Deliverable:** A `CONFIG_SYSTEM.md` document with:
+**Deliverable:** Create `docs/deliverables/CONFIG_SYSTEM_DRAFT.md` with:
 
 - A table mapping config files to providers and key fields
 - A diagram showing how config selection happens at runtime
 - A list of validation gaps (fields that aren't checked, ambiguous defaults)
 - Three hypothetical misconfigurations and where the error would surface
 
-**Why this matters:** From what I saw, the config system is the biggest UX friction point. Users need to manually copy, rename, and edit JSON files. Fixing this will be Phase 3, but understanding it thoroughly now prevents you from shooting yourself in the foot later.
-
 ### Day 11–12: RetroArch Integration Flow
 
 **Task:** Understand how RetroArch talks to PGTranslate.
 
-The docs mention RetroArch AI Service integration. Trace:
+Trace:
 
 - What protocol/port does RetroArch use?
 - What request format does it expect?
 - What response format must PGTranslate return?
 - Are there timing constraints (game translation needs to be fast)?
 
-**Deliverable:** A `RETROARCH_INTEGRATION.md` note covering:
+**Deliverable:** Create `docs/deliverables/RETROARCH_INTEGRATION.md` covering:
 
 - Protocol details (HTTP, WebSocket, etc.)
 - Expected request/response schemas
@@ -153,9 +190,67 @@ Review your notes from Weeks 1–2 and identify:
 3. **Technical debt:** Missing tests, unclear error messages, undocumented functions
 4. **Quick wins:** Small fixes that would yield big UX gains
 
-**Deliverable:** Final `PHASE0_SUMMARY.md` with:
+**Deliverable:** Create `docs/deliverables/PHASE0_SUMMARY.md` with:
 
 - Executive summary (one paragraph on state of the project)
-- Architecture diagram (refined from Week 1)
+- Architecture diagram (refined from `ARCHITECTURE_DRAFT.md`)
 - Priority-ranked pain points with suggested remediation phases
 - Personal learning goals checklist (Python concepts you encountered that you want to master)
+
+**Deliverable:** Promote drafts to final form:
+
+`git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md git commit -m "docs: promote Phase 0 drafts to final form"`
+
+Commit message body:
+
+> Phase 0 codebase reconnaissance complete. All deliverables finalized. Ready to begin Phase 1 (tooling and code hygiene).
+
+---
+
+## Red Flags to Watch For
+
+While reading, note these anti-patterns if you find them (candidates for Phase 1+ refactors):
+
+- **Hardcoded paths:** Absolute paths like `/home/user/config.json`
+- **Silent failures:** Errors swallowed without logging
+- **String literals for config keys:** Instead of constants or enums
+- **Monolithic functions:** Anything >100 lines doing multiple things
+- **Duplicate code:** Same logic in multiple places for different providers
+- **Magic numbers:** Unexplained values like `timeout = 30`
+- **Global state:** Module-level mutable dicts or caches
+
+---
+
+## Phase 0 Learning Checklist
+
+As you go, tag concepts you encounter that you want to learn more deeply:
+
+|Concept|Why It Matters Here|Resource Suggestion|
+|---|---|---|
+|`pathlib`|File/path handling in config loading|Python docs + Cursor explainer|
+|JSON parsing / serialization|Core to config system|MDN + Pydantic docs|
+|Decorators|Likely used in routes/middleware|"Fluent Python" Ch. 7|
+|Context managers|File handles, sessions, API connections|"Fluent Python" Ch. 14|
+|Logging module|Observability, debugging|Python logging HOWTO|
+|Virtual environments|Dependency isolation|pip & venv docs|
+|Import resolution|How Python finds modules|Python import system docs|
+|Dataclasses|Clean config/data structures|Python 3.10+ docs|
+|Type annotations|Static analysis readiness|`typing` module docs|
+|Exception handling patterns|Robust error messages|Python docs on exceptions|
+|`requests` / `httpx`|API calls to providers|Library docs|
+|Testing frameworks (`pytest`)|Validate changes|pytest docs + example tests|
+
+Ask Cursor to explain any of these as you encounter them. Don't try to memorize them all upfront — let the project teach you.
+
+---
+
+## When You're Ready for Phase 1
+
+You'll know Phase 0 is done when you can:
+
+- ✅ Answer "What happens when RetroArch sends a game screenshot?" without looking at code
+- ✅ Name each major module and what it owns
+- ✅ Spot where a new provider would plug in
+- ✅ Point to 3 UX problems worth solving
+
+If you hit a wall on any of these, spend another day drilling deeper. It's better to spend 3 weeks here than to rush into refactoring and discover you missed a critical path.

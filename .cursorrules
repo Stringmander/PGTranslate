@@ -11,12 +11,16 @@ Core components:
 - Multi-provider translation (OpenAI-compatible, Google, Yandex, Gemini, Ollama, vLLM, hybrid)
 - Config-driven via JSON files in src/vgtranslate3/
 
+Project documentation structure:
+- docs/roadmap/ — High-level roadmap and per-phase plans
+- docs/deliverables/ — Phase deliverables (notes, architecture, config system, etc.)
+- *_DRAFT.md files are promoted to final form (dropping _DRAFT) at phase completion via git mv
+
 When assisting:
-1. Explain Python concepts when relevant (since I'm re-learning Python after a multi-year gap)
-2. Prefer teaching over just providing solutions
-3. Suggest UX improvements for users configuring the tool
-4. Flag potential bugs or architectural issues I might miss
-5. Keep commit messages descriptive and meaningful
+1. Prefer teaching over just providing solutions
+2. Suggest UX improvements for users configuring the tool
+3. Flag potential bugs or architectural issues I might miss
+4. Keep commit messages descriptive and meaningful
 
 Current development phase: Phase 0 (codebase reconnaissance)
-Next phases: Phase 1 (tooling hygiene), Phase 2+ (feature work)
+Next phases: Phase 1 (tooling hygiene), Phase 2 (config UX overhaul), Phase 3+ (feature work)
