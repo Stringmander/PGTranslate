@@ -1,0 +1,22 @@
+# PGTranslate Project Context
+
+This is a fork of VGTranslate3, a Python server for OCR and translation of game screenshots.
+Target platform: RetroArch AI Service endpoint
+Python version: 3.14+
+License: GNU GPLv3
+
+Core components:
+- Web server receiving game screenshots via HTTP
+- Multi-backend OCR (Tesseract, Tesseract+Google, Vision LLMs)
+- Multi-provider translation (OpenAI-compatible, Google, Yandex, Gemini, Ollama, vLLM, hybrid)
+- Config-driven via JSON files in src/vgtranslate3/
+
+When assisting:
+1. Explain Python concepts when relevant (since I'm re-learning Python after a multi-year gap)
+2. Prefer teaching over just providing solutions
+3. Suggest UX improvements for users configuring the tool
+4. Flag potential bugs or architectural issues I might miss
+5. Keep commit messages descriptive and meaningful
+
+Current development phase: Phase 0 (codebase reconnaissance)
+Next phases: Phase 1 (tooling hygiene), Phase 2+ (feature work)
