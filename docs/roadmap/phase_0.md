@@ -17,9 +17,10 @@ By the end of Phase 0, you should be able to:
 
 ## Deliverables Directory Structure
 
+```text
 docs/
 ├── roadmap/
-│   ├── ROADMAP.md                     # High-level project trajectory (all phases)
+│   ├── roadmap.md                     # High-level project trajectory (all phases)
 │   └── phase_0.md                     # This document
 └── deliverables/
     ├── PHASE0_NOTES.md                # First-pass readings, confusion points
@@ -28,12 +29,17 @@ docs/
     ├── CONFIG_SYSTEM_DRAFT.md         # Config provider mappings, validation gaps
     ├── RETROARCH_INTEGRATION.md       # Protocol details, request/response schemas
     └── PHASE0_SUMMARY.md              # Final synthesis + priority-ranked pain points
+```
 
 ### Naming Convention
 
 All `*_DRAFT.md` files are promoted to their final form (dropping the `_DRAFT` suffix) upon Phase 0 completion via `git mv`:
 
-`git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md git commit -m "docs: promote Phase 0 drafts to final form"`
+```bash
+git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md
+git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md
+git commit -m "docs: promote Phase 0 drafts to final form"
+```
 
 Files without `_DRAFT` (`PHASE0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_INTEGRATION.md`, `PHASE0_SUMMARY.md`) are created in their final name from the start.
 
@@ -49,7 +55,7 @@ Files without `_DRAFT` (`PHASE0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_IN
 2. `INSTALL.md` — Understand dependencies and setup
 3. `LOCAL_MODELS_GUIDE.md` and `TESSERACT_GUIDE.md` — Specialized setup docs
 4. `src/vgtranslate3/` directory — Read all `.py` files
-5. Any config examples (`config_*.json`)
+5. `src/vgtranslate3/config_example/` — The ten `config_*.json` provider examples
 6. `tests/` — Skim what's tested vs. not tested
 7. `pyproject.toml` and `requirements.txt` — Dependencies
 
@@ -76,7 +82,7 @@ Don't rush. Spend 30–60 minutes per file if needed. The goal is comprehension,
 
 **Task:** Manually trace an image request from arrival to translation completion.
 
-Start at the server entry point (likely a Flask/FastAPI route handler or equivalent), then follow:
+Start at `src/vgtranslate3/serve.py`, which `pyproject.toml` exposes as the `vgtranslate3` console script via `vgtranslate3.serve:main`. Note that `main` is a function inside `serve.py` — there is no `main.py` module. From there, follow:
 
 - How does the image get received?
 - Where does OCR happen?
@@ -90,13 +96,19 @@ Start at the server entry point (likely a Flask/FastAPI route handler or equival
 
 **Request Lifecycle Diagram:** A text-based diagram showing how a game screenshot flows from entry to translation output.
 
-**Module Breakdown** (focus: Python source files in `src/vgtranslate3/`):
+**Module Breakdown** (17 Python files in `src/vgtranslate3/`, ~5,200 lines total). Start with the largest, since they carry most of the logic:
 
 |File/Module|Responsibility|Dependencies|Notes|
 |---|---|---|---|
+|`serve.py` (entry point)|...|...|...|
+|`util.py`|...|...|...|
+|`ocr_providers.py`|...|...|...|
+|`translation_providers.py`|...|...|...|
+|`ocr_tools.py`|...|...|...|
+|`imaging.py`|...|...|...|
+|`config.py`|...|...|...|
 |`__init__.py`|...|...|...|
-|`main.py`|...|...|...|
-|...|...|...|...|
+|...remaining modules...|...|...|...|
 
 **Data Flow Transformation Points:**
 
@@ -116,11 +128,15 @@ Mark the top of the file with:
 
 ### Day 5–7: Static Analysis
 
-**Task:** Run the existing tests and examine coverage.
+**Task:** Run the existing tests and examine coverage. The project uses pytest, configured under `[tool.pytest.ini_options]` in `pyproject.toml`.
 
-`python -m pytest --cov=src/ --cov-report=html`
+```bash
+uv sync --extra dev          # installs pytest, ruff, mypy
+uv pip install pytest-cov    # not yet declared in the dev extra
+uv run pytest --cov=src/ --cov-report=html
+```
 
-Or whatever test runner the project uses. Look at:
+The `--cov` flag comes from the `pytest-cov` plugin, which the `dev` extra does not currently list; without it pytest exits on an unrecognized argument. Adding it permanently is a Phase 1 task. Look at:
 
 - Which modules have zero test coverage?
 - Which parts of the code aren't exercised?
@@ -128,7 +144,7 @@ Or whatever test runner the project uses. Look at:
 
 Also check:
 
-- Static analysis warnings with `ruff check src/ tests/`
+- Static analysis warnings with `uv run ruff check src/ tests/` (config already exists under `[tool.ruff]`)
 - Type hints: are they present, partial, or absent?
 - Import cycles or circular dependencies
 
@@ -146,7 +162,7 @@ Also check:
 
 **Task:** Understand every config variant in detail.
 
-Look at all `config_*.json` files and catalog:
+Look at all `config_*.json` files in `src/vgtranslate3/config_example/` and catalog:
 
 - What provider does each support?
 - What fields are common vs. unique?
@@ -199,7 +215,11 @@ Review your notes from Weeks 1–2 and identify:
 
 **Deliverable:** Promote drafts to final form:
 
-`git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md git commit -m "docs: promote Phase 0 drafts to final form"`
+```bash
+git mv docs/deliverables/ARCHITECTURE_DRAFT.md docs/deliverables/ARCHITECTURE.md
+git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.md
+git commit -m "docs: promote Phase 0 drafts to final form"
+```
 
 Commit message body:
 

@@ -6,10 +6,11 @@ Python version: 3.14+
 License: GNU GPLv3
 
 Core components:
-- Web server receiving game screenshots via HTTP
+- Web server receiving game screenshots via HTTP; entry point is src/vgtranslate3/serve.py
+  (exposed as the `vgtranslate3` console script via `vgtranslate3.serve:main` — there is no main.py)
 - Multi-backend OCR (Tesseract, Tesseract+Google, Vision LLMs)
 - Multi-provider translation (OpenAI-compatible, Google, Yandex, Gemini, Ollama, vLLM, hybrid)
-- Config-driven via JSON files in src/vgtranslate3/
+- Config-driven via JSON files; provider examples live in src/vgtranslate3/config_example/
 
 Project documentation structure:
 - docs/roadmap/ — High-level roadmap and per-phase plans
