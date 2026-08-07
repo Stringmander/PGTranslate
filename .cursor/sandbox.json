@@ -1,0 +1,9 @@
+{
+  "networkPolicy": {
+    "allow": [
+      "*.github.com",
+      "pypi.org",
+      "files.pythonhosted.org"
+    ]
+  }
+}
