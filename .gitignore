@@ -30,6 +30,13 @@ htmlcov/
 *.code-workspace
 .gigaide/
 
+# Obsidian: share vault settings, ignore per-machine UI state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+.trash/
+
 
 .DS_Store
 Thumbs.db

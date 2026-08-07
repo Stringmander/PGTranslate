@@ -1,4 +1,4 @@
-## 📝[[phase_0|Phase 0: Foundation & Understanding]] (Weeks 1–2) 
+## 📝 [Phase 0: Foundation & Understanding](phase_0.md) (Weeks 1–2)
 
 **Goal:** Know the codebase cold before changing anything.
 

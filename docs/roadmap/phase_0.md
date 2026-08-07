@@ -23,12 +23,12 @@ docs/
 │   ├── roadmap.md                     # High-level project trajectory (all phases)
 │   └── phase_0.md                     # This document
 └── deliverables/
-    ├── PHASE0_NOTES.md                # First-pass readings, confusion points
+    ├── PHASE_0_NOTES.md               # First-pass readings, confusion points
     ├── ARCHITECTURE_DRAFT.md          # Code modules, request lifecycle, data flow
     ├── DOCUMENTATION_MAP.md           # Existing docs inventory + gaps
     ├── CONFIG_SYSTEM_DRAFT.md         # Config provider mappings, validation gaps
     ├── RETROARCH_INTEGRATION.md       # Protocol details, request/response schemas
-    └── PHASE0_SUMMARY.md              # Final synthesis + priority-ranked pain points
+    └── PHASE_0_SUMMARY.md             # Final synthesis + priority-ranked pain points
 ```
 
 ### Naming Convention
@@ -41,7 +41,9 @@ git mv docs/deliverables/CONFIG_SYSTEM_DRAFT.md docs/deliverables/CONFIG_SYSTEM.
 git commit -m "docs: promote Phase 0 drafts to final form"
 ```
 
-Files without `_DRAFT` (`PHASE0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_INTEGRATION.md`, `PHASE0_SUMMARY.md`) are created in their final name from the start.
+Files without `_DRAFT` (`PHASE_0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_INTEGRATION.md`, `PHASE_0_SUMMARY.md`) are created in their final name from the start.
+
+Phase-scoped deliverables carry the phase number in `PHASE_<n>_` form, matching the `phase_<n>.md` naming used under `docs/roadmap/`.
 
 ---
 
@@ -59,7 +61,7 @@ Files without `_DRAFT` (`PHASE0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_IN
 6. `tests/` — Skim what's tested vs. not tested
 7. `pyproject.toml` and `requirements.txt` — Dependencies
 
-**Deliverable:** Create `docs/deliverables/PHASE0_NOTES.md` with:
+**Deliverable:** Create `docs/deliverables/PHASE_0_NOTES.md` with:
 
 - One sentence describing each file/module's purpose
 - A list of 5–10 terms/concepts you had to look up
@@ -148,7 +150,7 @@ Also check:
 - Type hints: are they present, partial, or absent?
 - Import cycles or circular dependencies
 
-**Deliverable:** Append a "Static Analysis" section to `PHASE0_NOTES.md` covering:
+**Deliverable:** Append a "Static Analysis" section to `PHASE_0_NOTES.md` covering:
 
 - Coverage % estimate by module
 - List of untested critical paths
@@ -206,7 +208,7 @@ Review your notes from Weeks 1–2 and identify:
 3. **Technical debt:** Missing tests, unclear error messages, undocumented functions
 4. **Quick wins:** Small fixes that would yield big UX gains
 
-**Deliverable:** Create `docs/deliverables/PHASE0_SUMMARY.md` with:
+**Deliverable:** Create `docs/deliverables/PHASE_0_SUMMARY.md` with:
 
 - Executive summary (one paragraph on state of the project)
 - Architecture diagram (refined from `ARCHITECTURE_DRAFT.md`)
