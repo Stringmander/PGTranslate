@@ -20,8 +20,8 @@ By the end of Phase 0, you should be able to:
 ```text
 docs/
 ├── roadmap/
-│   ├── roadmap.md                     # High-level project trajectory (all phases)
-│   └── phase_0.md                     # This document
+│   ├── ROADMAP.md                     # High-level project trajectory (all phases)
+│   └── PHASE_0.md                     # This document
 └── deliverables/
     ├── PHASE_0_NOTES.md               # First-pass readings, confusion points
     ├── ARCHITECTURE_DRAFT.md          # Code modules, request lifecycle, data flow
@@ -43,7 +43,7 @@ git commit -m "docs: promote Phase 0 drafts to final form"
 
 Files without `_DRAFT` (`PHASE_0_NOTES.md`, `DOCUMENTATION_MAP.md`, `RETROARCH_INTEGRATION.md`, `PHASE_0_SUMMARY.md`) are created in their final name from the start.
 
-Phase-scoped deliverables carry the phase number in `PHASE_<n>_` form, matching the `phase_<n>.md` naming used under `docs/roadmap/`.
+All documentation files use SCREAMING_SNAKE_CASE, matching the guides in the repository root. Phase-scoped deliverables carry the phase number in `PHASE_<n>_` form, and the roadmap plans they correspond to are named `PHASE_<n>.md`.
 
 ---
 

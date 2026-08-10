@@ -31,7 +31,7 @@ One sentence each, filled in during the Day 1–2 reading pass. The 17 modules i
 ## Terms and Concepts Looked Up
 
 Target 5–10. Cross-reference against the learning checklist in
-[phase_0.md](../roadmap/phase_0.md).
+[PHASE_0.md](../roadmap/PHASE_0.md).
 
 ## Clean vs. Messy
 
