@@ -1,0 +1,41 @@
+---
+description: What to watch for when reading or changing Python in this project
+globs: src/**/*.py,tests/**/*.py
+alwaysApply: false
+---
+
+# Reading Python Here
+
+Phase 0 is analysis only — do not change `src/` during it.
+
+Flag bugs and architectural issues proactively, especially Python-specific
+idioms and anti-patterns Nick would not yet recognize coming from TypeScript.
+Suggest UX improvements for people configuring the tool; config UX is the
+known pain point and the target of Phase 2.
+
+## Known shape of the codebase
+
+Roughly 5,200 lines across 17 modules. Already catalogued in
+`docs/deliverables/ARCHITECTURE_DRAFT.md` — read it before re-deriving findings:
+
+- `_handle_modern_pipeline` in `serve.py` is 275 lines doing six jobs
+- `config.load_init()` is 229 lines of module-level globals with no validation
+- `OpenAI`/`DeepSeek`/`Groq` translation providers are near-identical
+- `ocr_tools.py` forks the same helper per platform
+- Dead code: BGR branches, `g_debug_mode`, `write_init()`, `ocr_texter.py`,
+  `opencv_engine.py`
+
+## Recurring anti-patterns
+
+- Module-level mutable globals used as a config store
+- `print()` as logging; no `logging` module anywhere
+- Bare `except:` and over-narrow `except` tuples that miss network errors
+- Silent failure: unknown config keys ignored, values read and discarded
+- `type(x) == Y` instead of `isinstance(x, Y)`
+- Magic numbers, especially byte offsets in `_fix_wav_size`
+
+## Verify, do not assume
+
+Run code to confirm behaviour before reporting it. The project venv is `.venv`
+(Python 3.14.6) and has the optional dependencies installed; the system Python
+does not, so imports of `ocr_providers` fail there on `cv2`.

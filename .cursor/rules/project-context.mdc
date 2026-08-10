@@ -1,0 +1,44 @@
+---
+description: What PGTranslate is, how it is laid out, and where work lands
+alwaysApply: true
+---
+
+# PGTranslate
+
+Fork of VGTranslate3: a Python server that OCRs and translates game screenshots,
+serving the RetroArch AI Service endpoint. Python 3.14+, GNU GPLv3.
+
+The package is still named `vgtranslate3` on disk. The rename to `pgtranslate`
+is assumed by Phase 2 and Phase 5 of the roadmap but not yet scheduled.
+
+## Entry point
+
+`src/vgtranslate3/serve.py`, exposed as the `vgtranslate3` console script via
+`vgtranslate3.serve:main`. There is no `main.py`. Docs that say
+`python -m src.vgtranslate3.serve` contradict the packaging.
+
+## Providers — as implemented, not as documented
+
+- OCR dispatch (`ocr_providers.get_ocr_provider`): google, yandex, openai, gemini, tesseract
+- Translation dispatch (`translation_providers.get_translation_provider`): google, yandex, openai, deepseek, groq, gemini
+- **Ollama and vLLM are NOT reachable.** `local_ocr_providers.py` and
+  `local_translation_providers.py` implement them and are unit-tested, but neither
+  appears in a dispatch table. `config_ollama_local.json`, `config_vllm_local.json`,
+  and `config_hybrid_ollama_groq.json` all fail with `ValueError: Unknown ... provider`.
+  `LOCAL_MODELS_GUIDE.md` documents this feature as if it works.
+
+Config is JSON, loaded from `src/vgtranslate3/config.json` or `$VGTRANSLATE3_CONFIG`.
+Examples live in `src/vgtranslate3/config_example/`.
+
+## Where changes land
+
+- Tooling and infrastructure (lockfile, sandbox config, agent rules) go to `master`.
+- Phase deliverables go on the phase branch (currently `phase-0/foundation`).
+
+Commit messages are descriptive and scoped, e.g.
+`docs(phase-0): scaffold config system draft`. Say why, not just what.
+
+## Current phase
+
+Phase 0 — codebase reconnaissance. Documentation only; no changes to `src/`.
+Next: Phase 1 (tooling hygiene), Phase 2 (config UX overhaul), Phase 3+ (features).
