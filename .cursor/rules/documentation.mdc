@@ -1,0 +1,41 @@
+---
+description: Documentation conventions, naming, and link style
+globs: **/*.md
+alwaysApply: false
+---
+
+# Documentation Conventions
+
+## Naming
+
+Markdown documentation uses SCREAMING_SNAKE_CASE: `ROADMAP.md`, `PHASE_0.md`,
+`DOCUMENTATION_MAP.md`. Phase-scoped deliverables carry the number as
+`PHASE_<n>_NOTES.md`; the roadmap plan they pair with is `PHASE_<n>.md`.
+
+This applies to Markdown only. Source files, JSON configs, and dotfiles keep
+their existing names — those are load-bearing. `config.py` reads `config.json`
+by name, and every guide documents the lowercase `config_*.json` paths.
+
+## Layout
+
+- `docs/roadmap/` — high-level roadmap and per-phase plans
+- `docs/deliverables/` — phase deliverables
+- `*_DRAFT.md` is promoted to its final name at phase completion via `git mv`
+
+The four guides still in the repository root and the one under
+`tests/benchmark/` move into `docs/` after Phase 0. Do not treat their location
+as rot; it is scheduled work.
+
+## Links
+
+Use relative Markdown links, not Obsidian wikilinks. The vault is configured for
+this (`useMarkdownLinks`, `newLinkFormat: relative`) so docs render correctly on
+GitHub as well as in Obsidian. Verify that relative paths resolve after any
+rename or move.
+
+## Claims
+
+Documentation in this repo makes assertions the code contradicts — missing
+files, unparseable JSON samples, a response shape the server does not return.
+Verify a claim against the tree before repeating it, and cite the file and line
+when recording a finding.
