@@ -117,6 +117,16 @@ nine of the eighteen modules and imported by none. That position is why every
 concern that belongs to no one else has settled here: the legacy ztranslate
 branch, the dead desktop-GUI branch, and a five-line WAV header patcher.
 
+It is cohesive — the parts do form one pipeline — but it has four reasons to
+change: the HTTP contract, the order of the pipeline, the response shape each
+provider returns, and the byte layout of a WAV header. The mixing is visible
+inside a single function body, where `_handle_modern_pipeline` both calls out to
+the stages and implements two of them inline: block normalisation at :284–306
+and the dual-format response shaping at :322–352. So the fix is vertical, not
+the sideways split `util.py` needs — lift the stages into their own module, push
+`_fix_wav_size` down into `text_to_speech` where byte-level WAV knowledge
+belongs, and delete the dead paths. The module survives, much thinner.
+
 **Notes.** Entry point, via the `vgtranslate3` console script.
 `_handle_modern_pipeline` (:213) is 275 lines and takes twelve parameters, four
 of which — `body`, `mode`, `request_output`, `alpha` — are never referenced in
