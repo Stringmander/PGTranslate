@@ -5,7 +5,7 @@
 > **How this file was prepared.** The lifecycle diagram, data-flow table, module
 > dependencies, and findings below were derived by tracing the code and are
 > verified against it — line references point at the relevant source. The
-> **Responsibility** column and the one-sentence summary are deliberately left
+> **Responsibility** entries and the one-sentence summary are deliberately left
 > empty: those are the Phase 0 success criteria, and filling them in is the
 > point of the reading pass.
 
@@ -60,29 +60,169 @@ APIHandler._handle_modern_pipeline               serve.py:213 (275 lines)
 
 ## Module Breakdown
 
-Seventeen modules in `src/vgtranslate3/`, plus the Web UI package. Fill in
-Responsibility as you read; dependencies and notes are pre-verified.
+Seventeen modules in `src/vgtranslate3/`, plus the Web UI package. The table
+below is the index; the responsibility and notes for each module follow it.
+Dependencies and notes are pre-verified — write the responsibility as you read.
 
-| Module                           | Lines | Responsibility                                                                                                                                                                                                                                                                                                                 | Internal deps                                                                                                                                 | Notes                                                                                                                                                                                                                                                     |
-| -------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `util.py`                        |   817 | Owns no single concern — it is the project's dependency-free bottom layer, bundling four unrelated toolkits behind one namespace: base64↔PIL image codec, colour reduction and pixel preprocessing for OCR, bounding-box geometry, and the ISO 639-1→639-3 language map.                                                       | none                                                                                                                                          | Largest module, ~35 free functions. No internal imports, so it is the leaf of the graph — everything depends on it, it depends on nothing. `lang_2_to_3` (:15) maps `sk` to `skk`, which is Sok; Slovak is `slk`.                                         |
-| `ocr_providers.py`               |   589 |                                                                                                                                                                                                                                                                                                                                | `config`, `bbox_extractor`, `util`                                                                                                            | Five providers behind `get_ocr_provider` (:576). Imports `bbox_extractor` unguarded at :20, which makes OpenCV a hard requirement — see finding 2.                                                                                                        |
-| `serve.py`                       |   586 | Owns no single concern — it is the project's top layer relying on all of the modules that are in use within the project, bundling multiple functionalities in one namespace: serves as projects entry point, contains primary API logic, handles launching web GUI, and contains function to correct TTS response header size. | `config`, `imaging`, `ocr_providers`, `screen_translate`, `translation_providers`, `text_to_speech`, `util`, `bbox_extractor`, `webui.server` | Entry point. Also holds a second, threaded server path (`start_api_server`, :508) for a GUI window object absent from this codebase — inherited from upstream, unreachable, see finding 11. Several arguments in ```_handle_modern_pipeline``` go unused. |
-| `translation_providers.py`       |   582 |                                                                                                                                                                                                                                                                                                                                | `config`, `util`                                                                                                                              | Six providers behind `get_translation_provider` (:568). OpenAI (:151), DeepSeek (:290), and Groq (:394) are near-identical — see finding 7.                                                                                                               |
-| `ocr_tools.py`                   |   503 |                                                                                                                                                                                                                                                                                                                                | `util`, `pyocr_util`                                                                                                                          | Tesseract helpers, forked per platform: `tess_helper_windows`/`_linux`/`_server` plus `_data_` variants of each. Has its own `main()` at :494.                                                                                                            |
-| `imaging.py`                     |   419 |                                                                                                                                                                                                                                                                                                                                | `util`                                                                                                                                        | Text rendering onto the output image (`ImageModder.write`, :230), plus `ImageSaver`/`ImageIterator` for an on-disk image history used only by the GUI path.                                                                                               |
-| `config.py`                      |   343 |                                                                                                                                                                                                                                                                                                                                | `imaging`                                                                                                                                     | Module-level globals as the config store. `load_init()` (:97) is 229 lines. Calls `imaging.load_font()` at :321, so loading config has a font side effect.                                                                                                |
-| `text_to_speech.py`              |   279 |                                                                                                                                                                                                                                                                                                                                | `config`                                                                                                                                      | Google/Yandex/OpenAI TTS behind `text_to_speech_api` (:24). Has its own `main()` at :272.                                                                                                                                                                 |
-| `local_ocr_providers.py`         |   270 |                                                                                                                                                                                                                                                                                                                                | `config`, `bbox_extractor`, `util`                                                                                                            | Ollama and vLLM OCR. **Not imported by the server** — only by `tests/test_providers.py`. See finding 1.                                                                                                                                                   |
-| `opencv_engine.py`               |   218 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | Standalone script (imports `argparse`). Unreferenced anywhere in `src/`.                                                                                                                                                                                  |
-| `local_translation_providers.py` |   191 |                                                                                                                                                                                                                                                                                                                                | `config`                                                                                                                                      | Ollama and vLLM translation. **Not imported by the server** — only by tests. See finding 1.                                                                                                                                                               |
-| `pyocr_util.py`                  |   124 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | Wraps the `pyocr` libtesseract backend; imported by `ocr_tools` inside a `try`.                                                                                                                                                                           |
-| `server_client.py`               |    82 |                                                                                                                                                                                                                                                                                                                                | `config`                                                                                                                                      | HTTP client for the legacy ztranslate.net service.                                                                                                                                                                                                        |
-| `bbox_extractor.py`              |    72 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | OpenCV contour detection for bounding boxes; imports `cv2` and `numpy` at module scope.                                                                                                                                                                   |
-| `screen_translate.py`            |    67 |                                                                                                                                                                                                                                                                                                                                | `config`, `imaging`, `server_client`                                                                                                          | Legacy ztranslate request path, reached only via `api_key_type == "ztranslate"`.                                                                                                                                                                          |
-| `__init__.py`                    |    38 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | Exposes `load_default_config()` (:30).                                                                                                                                                                                                                    |
-| `ocr_texter.py`                  |     6 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | A single classmethod stub. Unreferenced anywhere.                                                                                                                                                                                                         |
-| `webui/server.py`                |  ~190 |                                                                                                                                                                                                                                                                                                                                | none                                                                                                                                          | WebSocket broadcast server and in-memory history, imported by `serve.py` inside a `try`.                                                                                                                                                                  |
+| Module | Lines | Internal deps |
+| --- | ---: | --- |
+| `util.py` | 817 | none |
+| `ocr_providers.py` | 589 | `config`, `bbox_extractor`, `util` |
+| `serve.py` | 586 | `config`, `imaging`, `ocr_providers`, `screen_translate`, `translation_providers`, `text_to_speech`, `util`, `bbox_extractor`, `webui.server` |
+| `translation_providers.py` | 582 | `config`, `util` |
+| `ocr_tools.py` | 503 | `util`, `pyocr_util` |
+| `imaging.py` | 419 | `util` |
+| `config.py` | 343 | `imaging` |
+| `text_to_speech.py` | 279 | `config` |
+| `local_ocr_providers.py` | 270 | `config`, `bbox_extractor`, `util` |
+| `opencv_engine.py` | 218 | none |
+| `local_translation_providers.py` | 191 | `config` |
+| `pyocr_util.py` | 124 | none |
+| `server_client.py` | 82 | `config` |
+| `bbox_extractor.py` | 72 | none |
+| `screen_translate.py` | 67 | `config`, `imaging`, `server_client` |
+| `__init__.py` | 38 | none |
+| `ocr_texter.py` | 6 | none |
+| `webui/server.py` | ~190 | none |
+
+## Per-Module Assessment
+
+### `util.py`
+
+**Responsibility.** Owns no single concern — it is the project's dependency-free
+bottom layer, bundling four unrelated toolkits behind one namespace: base64↔PIL
+image codec, colour reduction and pixel preprocessing for OCR, bounding-box
+geometry, and the ISO 639-1→639-3 language map.
+
+**Notes.** Largest module, ~35 free functions. No internal imports, so it is the
+leaf of the graph — everything depends on it, it depends on nothing.
+`lang_2_to_3` (:15) maps `sk` to `skk`, which is Sok; Slovak is `slk`.
+
+### `ocr_providers.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Five providers behind `get_ocr_provider` (:576). Imports
+`bbox_extractor` unguarded at :20, which makes OpenCV a hard requirement — see
+finding 2.
+
+### `serve.py`
+
+**Responsibility.** Owns no single concern — it is the project's top layer
+relying on all of the modules that are in use within the project, bundling
+multiple functionalities in one namespace: serves as projects entry point,
+contains primary API logic, handles launching web GUI, and contains function to
+correct TTS response header size.
+
+**Notes.** Entry point. Also holds a second, threaded server path
+(`start_api_server`, :508) for a GUI window object absent from this codebase —
+inherited from upstream, unreachable, see finding 11. Several arguments in
+`_handle_modern_pipeline` go unused.
+
+### `translation_providers.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Six providers behind `get_translation_provider` (:568). OpenAI
+(:151), DeepSeek (:290), and Groq (:394) are near-identical — see finding 7.
+
+### `ocr_tools.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Tesseract helpers, forked per platform:
+`tess_helper_windows`/`_linux`/`_server` plus `_data_` variants of each. Has its
+own `main()` at :494.
+
+### `imaging.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Text rendering onto the output image (`ImageModder.write`, :230),
+plus `ImageSaver`/`ImageIterator` for an on-disk image history used only by the
+GUI path.
+
+### `config.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Module-level globals as the config store. `load_init()` (:97) is 229
+lines. Calls `imaging.load_font()` at :321, so loading config has a font side
+effect.
+
+### `text_to_speech.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Google/Yandex/OpenAI TTS behind `text_to_speech_api` (:24). Has its
+own `main()` at :272.
+
+### `local_ocr_providers.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Ollama and vLLM OCR. **Not imported by the server** — only by
+`tests/test_providers.py`. See finding 1.
+
+### `opencv_engine.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Standalone script (imports `argparse`). Unreferenced anywhere in
+`src/`.
+
+### `local_translation_providers.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Ollama and vLLM translation. **Not imported by the server** — only by
+tests. See finding 1.
+
+### `pyocr_util.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Wraps the `pyocr` libtesseract backend; imported by `ocr_tools`
+inside a `try`.
+
+### `server_client.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** HTTP client for the legacy ztranslate.net service.
+
+### `bbox_extractor.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** OpenCV contour detection for bounding boxes; imports `cv2` and
+`numpy` at module scope.
+
+### `screen_translate.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Legacy ztranslate request path, reached only via `api_key_type ==
+"ztranslate"`.
+
+### `__init__.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** Exposes `load_default_config()` (:30).
+
+### `ocr_texter.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** A single classmethod stub. Unreferenced anywhere.
+
+### `webui/server.py`
+
+**Responsibility.** _Not yet written._
+
+**Notes.** WebSocket broadcast server and in-memory history, imported by
+`serve.py` inside a `try`.
 
 ## Data Flow Transformation Points
 
