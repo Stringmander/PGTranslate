@@ -108,16 +108,22 @@ finding 2.
 
 ### `serve.py`
 
-**Responsibility.** Owns no single concern — it is the project's top layer
-relying on all of the modules that are in use within the project, bundling
-multiple functionalities in one namespace: serves as projects entry point,
-contains primary API logic, handles launching web GUI, and contains function to
-correct TTS response header size.
+**Responsibility.** The server, and the only module that knows the pipeline as a
+whole: it terminates the RetroArch HTTP request, resolves which providers to use
+from config, then drives OCR, block normalisation, translation, TTS, rendering,
+and the Web UI broadcast in that order. Structurally it is the mirror of
+`util.py` — the root of the dependency graph rather than the leaf, importing
+nine of the eighteen modules and imported by none. That position is why every
+concern that belongs to no one else has settled here: the legacy ztranslate
+branch, the dead desktop-GUI branch, and a five-line WAV header patcher.
 
-**Notes.** Entry point. Also holds a second, threaded server path
-(`start_api_server`, :508) for a GUI window object absent from this codebase —
-inherited from upstream, unreachable, see finding 11. Several arguments in
-`_handle_modern_pipeline` go unused.
+**Notes.** Entry point, via the `vgtranslate3` console script.
+`_handle_modern_pipeline` (:213) is 275 lines and takes twelve parameters, four
+of which — `body`, `mode`, `request_output`, `alpha` — are never referenced in
+the body; a fifth, `pixel_format`, appears only in the unreachable BGR branch.
+Also holds a second, threaded server path (`start_api_server`, :508) for a GUI
+window object absent from this codebase — inherited from upstream, unreachable,
+see finding 11.
 
 ### `translation_providers.py`
 
