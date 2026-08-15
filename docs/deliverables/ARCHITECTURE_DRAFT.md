@@ -160,11 +160,38 @@ GUI path.
 
 ### `config.py`
 
-**Responsibility.** Parses user defined configuration from user-defined `config.json` and assigns corresponding values to module-level globals for use in other modules. Requires users to write their own or modify one of the provided example configuration files in `src/config_example` as try/except block raises an exception if a valid configuration file is not present in `src`. The module is cohesive in that all of its parts are concerned with providing configuration details to consuming modules, but would benefit from both changes condensing replicated variables, i.e. URLs and API key variables for each respective provider, and splitting the module vertically. Module would benefit from splitting default configuration(s) and differing parsing logic for each respective provider.
+**Responsibility.** Reads the JSON configuration and republishes it as
+module-level globals that every other module imports and reads directly.
+`CFG_PATH` (:8) resolves to `$VGTRANSLATE3_CONFIG`, falling back to a
+`config.json` sitting beside `config.py`. Neither is created by the project, so
+a user must write one or copy a template out of
+`src/vgtranslate3/config_example/`; nothing is loaded automatically.
+
+Its parts are cohesive in intent, with one break: `imaging.load_font()` at :321
+configures nothing and is the sole reason the module has an internal dependency
+at all, inverting the layering so that the config store reaches up into a
+rendering module.
+
+The deeper problem is that it is a data structure written as executable code. 61
+module-level assignments establish the defaults, then `load_init()` (:97)
+re-declares 58 of those names across 59 `global` statements and copies each one
+across with its own hand-written `if "key" in config_file` branch — 59 branches
+over 229 lines. Nothing checks a type or a range, and an unrecognised key is
+discarded without comment. The duplication is the same handful of fields, a base
+URL and key and model and timeout, restated once per backend. So the remedy is
+less a split than a replacement: declare the schema once as data and derive both
+the defaults and the parsing from it, at which point most of the 229 lines cease
+to exist rather than moving somewhere else.
 
 **Notes.** Module-level globals as the config store. `load_init()` (:97) is 229
 lines. Calls `imaging.load_font()` at :321, so loading config has a font side
-effect. The try/except block at :175 is deliberately broad, and swallows everything. `FileNotFoundError`, `PermissionError` , malformed JSON, and genuine programming mistakes may be reported to user as "Invalid config file specification".
+effect. The `except Exception` at :175 spans the whole read-and-parse step, so a
+missing file, an unreadable one, and malformed JSON all land under the same
+"Invalid config file specification" header — though the exception is printed on
+the following line, so the specific cause does reach the user. On failure it
+returns `False` rather than raising; its only caller, `serve.py:539`, turns that
+into a bare `return` out of `main()`, so a bad config exits zero with no
+traceback and no message beyond those two lines.
 
 ### `text_to_speech.py`
 
