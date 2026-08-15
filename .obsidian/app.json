@@ -1,0 +1,13 @@
+{
+  "readableLineLength": false,
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "docs/assets",
+  "userIgnoreFilters": [
+    ".venv/",
+    "src/vgtranslate3/webui/",
+    "node_modules/"
+  ],
+  "showLineNumber": true
+}

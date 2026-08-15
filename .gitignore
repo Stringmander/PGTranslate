@@ -30,6 +30,15 @@ htmlcov/
 *.code-workspace
 .gigaide/
 
+# Obsidian: share vault settings, ignore per-machine UI state.
+# community-plugins.json stays tracked so the expected plugin list travels
+# with the vault; plugin bundles themselves are reinstalled per clone.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/
+.trash/
+
 
 .DS_Store
 Thumbs.db
