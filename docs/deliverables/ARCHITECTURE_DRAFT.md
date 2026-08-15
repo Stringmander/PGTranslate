@@ -160,11 +160,11 @@ GUI path.
 
 ### `config.py`
 
-**Responsibility.** _Not yet written._
+**Responsibility.** Parses user defined configuration from user-defined `config.json` and assigns corresponding values to module-level globals for use in other modules. Requires users to write their own or modify one of the provided example configuration files in `src/config_example` as try/except block raises an exception if a valid configuration file is not present in `src`. The module is cohesive in that all of its parts are concerned with providing configuration details to consuming modules, but would benefit from both changes condensing replicated variables, i.e. URLs and API key variables for each respective provider, and splitting the module vertically. Module would benefit from splitting default configuration(s) and differing parsing logic for each respective provider.
 
 **Notes.** Module-level globals as the config store. `load_init()` (:97) is 229
 lines. Calls `imaging.load_font()` at :321, so loading config has a font side
-effect.
+effect. The try/except block at :175 is deliberately broad, and swallows everything. `FileNotFoundError`, `PermissionError` , malformed JSON, and genuine programming mistakes may be reported to user as "Invalid config file specification".
 
 ### `text_to_speech.py`
 
